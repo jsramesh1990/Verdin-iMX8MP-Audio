@@ -171,6 +171,341 @@ cmake -DCMAKE_CXX_COMPILER=g++-11 ..
 ```bash
 audio_tool -i INPUT.wav -o OUTPUT.wav [OPTIONS]
 ```
+# Project Flow: C++ Audio Processing Tool
+
+Here's the complete flow of the audio processing project, from input to output:
+
+##  **Overall Processing Flow**
+
+```mermaid
+graph TD
+    A[Start Program] --> B[Parse Command Line Arguments]
+    B --> C[Validate Input/Output Files]
+    C --> D[Read WAV File<br/>via libsndfile]
+    D --> E{Effects Selected?}
+    E -->|Yes| F[Initialize Audio Processor]
+    E -->|No| G[Copy Input to Output]
+    F --> H[Apply Effects in Sequence]
+    
+    subgraph "Processing Chain (Order Matters)"
+        H --> I[1. High-Pass Filter]
+        I --> J[2. Low-Shelf Filter]
+        J --> K[3. Peaking EQ]
+        K --> L[4. Pitch Shift]
+        L --> M[5. Gain/Normalize]
+    end
+    
+    M --> N[Convert to Output Format]
+    N --> O[Write WAV File]
+    O --> P[Cleanup Resources]
+    P --> Q[End Program]
+```
+
+##  **Detailed Step-by-Step Flow**
+
+### **Phase 1: Initialization**
+```
+1. Program Start
+   └── Parse command line arguments
+       ├── -i input.wav (required)
+       ├── -o output.wav (required)
+       ├── --pitch <semitones>
+       ├── --hp <freq Q>
+       ├── --lowshelf <freq gain Q>
+       └── --peak <freq gain Q>
+```
+
+### **Phase 2: File Loading & Validation**
+```
+2. Load Audio File
+   ├── Open input.wav with libsndfile
+   ├── Read WAV header metadata:
+   │   ├── Sample rate (e.g., 44100 Hz)
+   │   ├── Number of channels (1=mono, 2=stereo)
+   │   ├── Bit depth (16, 24, or 32-bit)
+   │   └── Total samples
+   └── Allocate memory buffers
+```
+
+### **Phase 3: Audio Processing Pipeline**
+
+#### **Step 1: High-Pass Filter (if enabled)**
+```
+┌─────────────────────────────────────────┐
+│ High-Pass Filter Processing             │
+├─────────────────────────────────────────┤
+│ • Remove frequencies below cutoff       │
+│ • Common: 80Hz for vocal rumble removal │
+│ • Biquad filter implementation          │
+│ • Processes each sample sequentially    │
+└─────────────────────────────────────────┘
+```
+
+#### **Step 2: Low-Shelf Filter (if enabled)**
+```
+┌─────────────────────────────────────────┐
+│ Low-Shelf Filter Processing             │
+├─────────────────────────────────────────┤
+│ • Boost or cut bass frequencies         │
+│ • Example: +6dB at 100Hz for bass boost │
+│ • Affects frequencies below cutoff      │
+│ • Q controls filter bandwidth           │
+└─────────────────────────────────────────┘
+```
+
+#### **Step 3: Peaking EQ (if enabled)**
+```
+┌─────────────────────────────────────────┐
+│ Peaking EQ Processing                   │
+├─────────────────────────────────────────┤
+│ • Bell-curve filter                     │
+│ • Boost or cut specific frequency       │
+│ • Example: -3dB at 1kHz for vocal cut   │
+│ • Q controls bandwidth of adjustment    │
+└─────────────────────────────────────────┘
+```
+
+#### **Step 4: Pitch Shifting (if enabled)**
+```
+┌─────────────────────────────────────────┐
+│ Pitch Shifting Processing               │
+├─────────────────────────────────────────┤
+│ • Calculate resampling ratio:           │
+│   ratio = 2^(semitones/12)             │
+│ • Resample audio using sinc interpolation│
+│ • Maintain original tempo               │
+│ • Apply anti-aliasing filter            │
+└─────────────────────────────────────────┘
+```
+
+#### **Step 5: Gain/Normalization**
+```
+┌─────────────────────────────────────────┐
+│ Final Processing                        │
+├─────────────────────────────────────────┤
+│ • Apply overall gain adjustment         │
+│ • Normalize to -1dBFS if --normalize    │
+│ • Clip prevention                       │
+│ • Convert back to original bit depth    │
+└─────────────────────────────────────────┘
+```
+
+### **Phase 4: Output & Cleanup**
+```
+4. Write Output File
+   ├── Create new WAV file
+   ├── Copy metadata from input
+   ├── Write processed audio data
+   └── Close file handles
+
+5. Cleanup
+   ├── Free allocated memory
+   ├── Close libsndfile instances
+   └── Exit with success code
+```
+
+##  **Filter Chain Order (Important!)**
+
+The processing order is **critical** for audio quality:
+
+```
+INPUT → High-Pass → Low-Shelf → Peaking → Pitch Shift → OUTPUT
+        ↑           ↑           ↑         ↑
+      (Clean)     (Shape)    (Correct)  (Tune)
+```
+
+**Why this order?**
+1. **High-Pass first**: Remove unwanted low-end before boosting
+2. **Low-Shelf second**: Shape bass frequencies
+3. **Peaking third**: Make precise mid/high adjustments
+4. **Pitch Shift last**: Avoid artifacts from filter processing
+
+## 📊 **Memory Flow & Data Structures**
+
+```mermaid
+graph LR
+    subgraph "Input Phase"
+        A[WAV File on Disk] --> B[libsndfile SF_INFO]
+        B --> C[Audio Buffer: float*]
+    end
+    
+    subgraph "Processing Phase"
+        C --> D[Process Buffer]
+        D --> E{Biquad Filters}
+        E -->|HP| F[HP Buffer]
+        E -->|LS| G[LS Buffer]
+        E -->|PEAK| H[PEAK Buffer]
+        F & G & H --> I[Pitch Shifter]
+        I --> J[Final Buffer]
+    end
+    
+    subgraph "Output Phase"
+        J --> K[libsndfile Write]
+        K --> L[WAV File on Disk]
+    end
+```
+
+##  **Algorithm Flow for Each Sample**
+
+For **each audio sample** (mono) or **sample pair** (stereo):
+
+```cpp
+// Simplified processing loop
+for (int i = 0; i < num_samples; i++) {
+    float sample = input_buffer[i];
+    
+    // Apply filters in sequence
+    if (highpass_enabled) {
+        sample = highpass_filter.process(sample);
+    }
+    
+    if (lowshelf_enabled) {
+        sample = lowshelf_filter.process(sample);
+    }
+    
+    if (peaking_enabled) {
+        sample = peaking_filter.process(sample);
+    }
+    
+    // Store for pitch shifting
+    temp_buffer[i] = sample;
+}
+
+// Pitch shift entire buffer
+if (pitch_enabled) {
+    pitch_shift(temp_buffer, output_buffer, num_samples, ratio);
+}
+
+// Apply final gain
+for (int i = 0; i < output_samples; i++) {
+    output_buffer[i] *= gain_factor;
+}
+```
+
+##  **Error Handling Flow**
+
+```
+Start Processing
+    ↓
+Check file exists & readable
+    ↓
+Validate WAV format
+    ↓
+Check effect parameters
+    (e.g., frequency within range)
+    ↓
+Process with try/catch
+    ↓
+Write output with validation
+    ↓
+Cleanup even on error
+```
+
+##  **Performance Optimization Flow**
+
+```
+1. Pre-compute filter coefficients
+   (Don't calculate per sample)
+
+2. Process in blocks
+   (Better cache utilization)
+
+3. SIMD optimization for filters
+   (Process multiple samples at once)
+
+4. Memory reuse
+   (Avoid unnecessary allocations)
+
+5. Progress reporting
+   (Update every 1% of processing)
+```
+
+##  **Build System Flow**
+
+```
+CMakeLists.txt
+    ↓
+cmake .                # Configure
+    ↓
+make                   # Compile
+    ↓
+Find libsndfile        # Dependency check
+    ↓
+Build source files     # *.cpp → *.o
+    ↓
+Link with libsndfile   # Create executable
+    ↓
+audio_tool             # Ready to run
+```
+
+##  **Quick Start Flow for Users**
+
+```bash
+# 1. Installation
+sudo apt install libsndfile1-dev cmake
+git clone <repo>
+cd audio-tool
+mkdir build && cd build
+cmake .. && make
+
+# 2. Basic Usage
+./audio_tool -i input.wav -o output.wav --pitch 3
+
+# 3. Advanced Usage
+./audio_tool -i vocal.wav -o processed.wav \
+    --hp 80 0.7 \
+    --lowshelf 100 4 0.8 \
+    --peak 1000 -2 1.5 \
+    --pitch -1 \
+    --normalize
+```
+
+##  **Debug/Verbose Flow**
+
+```bash
+# Run with verbose output
+./audio_tool -v -i input.wav -o output.wav --pitch 2
+
+# Expected verbose output:
+[INFO] Loading input.wav (44100 Hz, Stereo, 16-bit)
+[INFO] Applying High-Pass: 80 Hz, Q=0.707
+[INFO] Applying Low-Shelf: 100 Hz, +6dB, Q=0.8
+[INFO] Pitch shifting: +2 semitones (ratio: 1.122)
+[INFO] Processing: ██████████ 100% (44100 samples)
+[INFO] Writing output.wav
+[INFO] Done!
+```
+
+##  **Visual Processing Flow Diagram**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Audio Processing Flow                 │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────┐ │
+│  │  INPUT  │───▶│   HPF   │───▶│   LSF   │───▶│ PEQ  │ │
+│  │  WAV    │    │         │    │         │    │      │ │
+│  └─────────┘    └─────────┘    └─────────┘    └──────┘ │
+│                                                         │
+│  ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────┐ │
+│  │  PITCH  │───▶│  GAIN   │───▶│ NORMAL  │───▶│ OUT  │ │
+│  │ SHIFTER │    │         │    │   IZE   │    │ WAV  │ │
+│  └─────────┘    └─────────┘    └─────────┘    └──────┘ │
+│                                                         │
+│  Time: ────────▶                                         │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+This flow ensures:
+1. **Predictable results** (same input → same output)
+2. **High audio quality** (professional algorithms)
+3. **Efficient processing** (optimized C++ code)
+4. **Easy debugging** (clear separation of concerns)
+
+The project is designed to be both **educational** (clean code structure) and **practical** (real-world audio processing).
+
 
 ### Command Line Options
 | Option | Arguments | Description | Default |
