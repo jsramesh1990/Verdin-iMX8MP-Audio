@@ -10,7 +10,7 @@
 
 ---
 
-## 📖 Table of Contents
+##  Table of Contents
 
 1. [Project Overview](#-project-overview)
 2. [Hardware Details](#-hardware-details)
@@ -33,7 +33,7 @@
 
 ---
 
-## 🎯 Project Overview
+##  Project Overview
 
 ### What is This Project?
 
@@ -67,7 +67,7 @@ The Verdin iMX8MP is a powerful module suitable for:
 
 ---
 
-## 🔧 Hardware Details
+##  Hardware Details
 
 ### Platform Architecture
 
@@ -160,7 +160,7 @@ I2C3 Interface (Codec Control):
 
 ---
 
-## 💡 What I Did
+##  What I Did
 
 ### 1. Designed the Complete Audio Architecture
 
@@ -287,7 +287,7 @@ Created multiple generator scripts:
 
 ---
 
-## 🎯 Where to Use
+##  Where to Use
 
 ### Industrial Applications
 
@@ -339,7 +339,7 @@ Created multiple generator scripts:
 
 ---
 
-## ✨ Features
+##  Features
 
 ### Core Features
 
@@ -387,73 +387,7 @@ Created multiple generator scripts:
 
 ---
 
-## 📁 Project Structure
-
-```
-verdin-imx8mp-audio-project/
-│
-├── README.md                    # 📖 This file - complete project guide
-├── LICENSE                      # 📄 MIT License
-├── .gitignore                   # 🔒 Git ignore file
-├── Makefile                     # 🛠️ Build system
-│
-├── src/                         # 💻 Source code
-│   ├── main.c                   # 🎯 Main application
-│   ├── audio_engine.c           # 🔉 Audio engine (core)
-│   ├── audio_engine.h           # 📋 Audio engine header
-│   ├── wav_loader.c             # 📂 WAV file operations
-│   ├── wav_loader.h             # 📋 WAV loader header
-│   ├── utils.c                  # 🛠️ Utility functions
-│   └── utils.h                  # 📋 Utils header
-│
-├── include/                     # 📚 Headers
-│   ├── audio_config.h           # ⚙️ Configuration
-│   ├── audio_engine.h           # 🔉 Audio engine
-│   ├── wav_loader.h             # 📂 WAV loader
-│   ├── utils.h                  # 🛠️ Utilities
-│   └── verdin_audio.h           # 📦 Main include
-│
-├── device-tree/                 # 🔌 Hardware configuration
-│   ├── imx8mp-verdin-audio-overlay.dts  # Device tree overlay
-│   ├── README_dt.md            # 📖 Device tree docs
-│   └── build_dt.sh             # 🛠️ Build script
-│
-├── configs/                     # ⚙️ Configuration files
-│   ├── asound.conf             # 🎵 ALSA configuration
-│   ├── audio_rules.rules       # 🔒 Udev rules
-│   └── audio-player.service    # 🚀 Systemd service
-│
-├── scripts/                     # 📜 Scripts
-│   ├── build.sh                # 🛠️ Build script
-│   ├── deploy.sh               # 📤 Deployment script
-│   ├── test_audio.sh           # 🧪 Test script
-│   ├── full_deploy.sh          # 📦 Full deployment
-│   └── audio_recovery.sh       # 🔧 Recovery script
-│
-├── tests/                       # 🧪 Tests
-│   ├── test_audio.c            # ✅ Test suite
-│   └── test_wav_files/         # 🎵 Test audio files
-│       ├── generate_test_wavs.py   # 🐍 Python generator
-│       ├── generate_wav.sh     # 📜 Bash generator
-│       ├── generate_wav.c      # 🖥️ C generator
-│       ├── test_440hz.wav      # 🎵 Test tone
-│       ├── test_1000hz.wav     # 🎵 Test tone
-│       ├── test_50hz.wav       # 🎵 Bass test
-│       ├── test_silence.wav    # 🔇 Silence
-│       ├── test_stereo.wav     # 🎵 Stereo test
-│       ├── test_sweep.wav      # 📈 Frequency sweep
-│       ├── test_impulse.wav    # ⚡ Impulse
-│       └── README.md           # 📖 Test files guide
-│
-└── docs/                        # 📚 Documentation
-    ├── API_REFERENCE.md         # 📖 Complete API docs
-    ├── DEPLOYMENT_GUIDE.md      # 📖 Deployment guide
-    └── TROUBLESHOOTING.md       # 📖 Troubleshooting guide
-```
-
----
-
-## 🛠️ Prerequisites
+##  Prerequisites
 
 ### Hardware Requirements
 - Verdin iMX8MP module
@@ -517,7 +451,7 @@ ssh $TARGET_USER@$TARGET_IP
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### 1. Clone the Repository
 ```bash
@@ -576,7 +510,7 @@ scp bin/audio_player torizon@192.168.1.100:/home/torizon/
 
 ---
 
-## 📚 Detailed Setup Guide
+##  Detailed Setup Guide
 
 ### Step 1: Configure Device Tree
 
@@ -641,7 +575,7 @@ sudo systemctl status audio-player
 
 ---
 
-## 🛠️ Building the Project
+##  Building the Project
 
 ### Native Build (on Target)
 ```bash
@@ -691,7 +625,7 @@ bitbake audio-player
 
 ---
 
-## 📤 Deployment
+##  Deployment
 
 ### Manual Deployment
 ```bash
@@ -732,7 +666,7 @@ docker run --privileged --device /dev/snd \
 
 ---
 
-## 💻 Usage Examples
+##  Usage Examples
 
 ### Basic Usage
 ```bash
@@ -794,7 +728,7 @@ int main() {
 
 ---
 
-## ⚙️ Configuration
+##  Configuration
 
 ### Audio Configuration (audio_config.h)
 ```c
@@ -850,7 +784,7 @@ SUBSYSTEM=="sound", KERNEL=="controlC0", SYMLINK+="audio/control"
 
 ---
 
-## 🧪 Testing
+##  Testing
 
 ### Quick Tests
 ```bash
@@ -900,7 +834,7 @@ aplay test_complex.wav
 
 ---
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Common Issues and Solutions
 
@@ -992,7 +926,7 @@ sudo chrt -f -p 50 $(pgrep audio_player)
 
 ---
 
-## 📊 Performance Benchmarks
+##  Performance Benchmarks
 
 ### CPU Usage
 | Operation | CPU Usage | Memory | Notes |
@@ -1033,7 +967,7 @@ sudo chrt -f -p 50 $(pgrep audio_player)
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 ### How to Contribute
 
@@ -1091,35 +1025,6 @@ int audio_function_name(int parameter1, char* parameter2)
 
 ---
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-```
-MIT License
-
-Copyright (c) 2025 Verdin Audio Project
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
----
 
 ## 📞 Support
 
@@ -1141,7 +1046,7 @@ SOFTWARE.
 
 ---
 
-## 🏆 Acknowledgments
+##  Acknowledgments
 
 - **Toradex** for the excellent Verdin iMX8MP module
 - **NXP** for the i.MX8MP processor
@@ -1151,7 +1056,7 @@ SOFTWARE.
 
 ---
 
-## 📊 Project Status
+##  Project Status
 
 | Component | Status | Version | Test Coverage |
 |-----------|--------|---------|---------------|
@@ -1165,7 +1070,7 @@ SOFTWARE.
 
 ---
 
-## 🔮 Future Roadmap
+##  Future Roadmap
 
 ### Version 1.5.0 (Planned)
 - [ ] Audio effects (reverb, delay, chorus)
@@ -1182,7 +1087,7 @@ SOFTWARE.
 
 ---
 
-## 📌 Quick Reference Card
+##  Quick Reference Card
 
 ### Essential Commands
 ```bash
@@ -1239,4 +1144,4 @@ cat /proc/asound/cards
 > **"The only way to do great work is to love what you do."** — Steve Jobs
 ```
 
-This complete README.md file now provides everything needed for anyone to understand, use, and contribute to the Verdin iMX8MP audio project. It covers all aspects from hardware details to deployment, with comprehensive documentation and examples.
+
